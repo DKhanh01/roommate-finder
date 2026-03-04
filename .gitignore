@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# nextjs
+.next/
+out/
+
+# nestjs build
+dist/
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# logs
+*.log
+
+# prisma
+prisma/migrations/
+
+# OS
+.DS_Store
+Thumbs.db
