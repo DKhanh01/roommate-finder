@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Room } from "@/types/room";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RoomDetailPage() {
   const { id } = useParams() as { id: string };
@@ -11,6 +12,7 @@ export default function RoomDetailPage() {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     api.get(`/room/detail/${id}`)
@@ -36,6 +38,7 @@ export default function RoomDetailPage() {
     </div>
   );
 
+  const isOwner = user && Number(user.id) === Number(room.userId);
   const images = room.images?.length ? room.images : [];
 
   return (
@@ -423,20 +426,21 @@ export default function RoomDetailPage() {
               </div>
 
               {/* Actions */}
-              <div className="detail-card">
-                <p className="section-label">Quản lý phòng</p>
-                <div className="action-row">
-                  <button className="btn-edit" onClick={() => router.push(`/room/edit/${id}`)}>
-                    ✏️ Chỉnh sửa
-                  </button>
-                  <button className="btn-delete" onClick={handleDelete}>
-                    🗑 Xoá phòng
-                  </button>
+              {isOwner && (
+                <div className="detail-card">
+                  <p className="section-label">Quản lý phòng</p>
+                  <div className="action-row">
+                    <button className="btn-edit" onClick={() => router.push(`/room/edit/${id}`)}>
+                      ✏️ Chỉnh sửa
+                    </button>
+                    <button className="btn-delete" onClick={handleDelete}>
+                      🗑 Xoá phòng
+                    </button>
+                  </div>
                 </div>
-              </div>
-
+                )}
             </div>
-
+            
             {/* Right sidebar */}
             {room.user && (
               <div className="detail-sidebar">
@@ -481,8 +485,6 @@ export default function RoomDetailPage() {
 }
 
 function Feature({ label, value }: { label: string; value: any }) {
-  if (value === null || value === undefined) return null;
-
   const isYes = value === true;
   const isNo = value === false;
 
@@ -490,7 +492,11 @@ function Feature({ label, value }: { label: string; value: any }) {
     <div className="feature-item">
       <div className="feature-label">{label}</div>
       <div className={`feature-value ${isYes ? "yes" : isNo ? "no" : ""}`}>
-        {typeof value === "boolean" ? (value ? "Có" : "Không") : value}
+        {value === null || value === undefined || value === ""
+          ? "Chưa cập nhật"
+          : typeof value === "boolean"
+            ? value ? "Có" : "Không"
+            : value}
       </div>
     </div>
   );

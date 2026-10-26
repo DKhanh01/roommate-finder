@@ -293,10 +293,16 @@ export default function UserDetailPage() {
               <div className="user-header-info">
                 <div className="user-name">{user.fullName || "Người dùng"}</div>
                 <div className="user-meta">
-                  {[user.age ? `${user.age} tuổi` : null, user.gender, user.location]
+                  {[user.age ? `${user.age} tuổi` : null,
+                    user.gender?.toLowerCase() === "male"
+                      ? "Nam"
+                        : user.gender?.toLowerCase() === "female"
+                        ? "Nữ"
+                        : user.gender,
+                    user.location]
                     .filter(Boolean).join(" · ")}
                 </div>
-              </div>
+              </div>  
             </div>
           </div>
 
@@ -397,13 +403,12 @@ export default function UserDetailPage() {
   )
 }
 
-function Lifestyle({ label, value }: { label: string; value: boolean | null }) {
-  if (value === null || value === undefined) return null
+function Lifestyle({ label, value }: { label: string; value: boolean | null | undefined }) {
   return (
     <div className="lifestyle-item">
       <div className="lifestyle-label">{label}</div>
-      <div className={`lifestyle-value ${value ? "yes" : "no"}`}>
-        {value ? "Có" : "Không"}
+      <div className={`lifestyle-value ${value == null ? "pending" : value ? "yes" : "no"}`}>
+        {value == null ? "Chưa cập nhật" : value ? "Có" : "Không"}
       </div>
     </div>
   )

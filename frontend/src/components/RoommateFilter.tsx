@@ -182,22 +182,27 @@ export default function RoommateFilter({ filter, setFilter, onSearch, onClear }:
           <label className="filter-label">Thói quen sống</label>
 
           {[
-            { key: "smoke",     label: "🚬 Hút thuốc" },
-            { key: "pet",       label: "🐾 Nuôi thú cưng" },
-            { key: "sleepLate", label: "🌙 Ngủ muộn" },
-          ].map(({ key, label }) => (
-            <label key={key} className="filter-toggle">
-              <span className="filter-toggle-label">{label}</span>
-              <span className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={filter[key] || false}
-                  onChange={(e) => setFilter({ ...filter, [key]: e.target.checked })}
-                />
-                <span className="toggle-track" />
-              </span>
-            </label>
-          ))}
+              { key: "smoke", label: "🚬 Hút thuốc" },
+              { key: "pet", label: "🐾 Nuôi thú cưng" },
+              { key: "sleepLate", label: "🌙 Ngủ muộn" },
+            ].map(({ key, label }) => (
+              <label key={key} className="filter-toggle">
+                <span className="filter-toggle-label">{label}</span>
+                <span className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={filter[key] === true}
+                    onChange={(e) =>
+                      setFilter({
+                        ...filter,
+                        [key]: e.target.checked,
+                      })
+                    }
+                  />
+                  <span className="toggle-track" />
+                </span>
+              </label>
+            ))}
         </div>
 
         <div className="filter-divider" />

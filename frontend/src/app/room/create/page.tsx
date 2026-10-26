@@ -1,46 +1,106 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import Toggle from "@/components/Toggle";
 
 const MapPicker = dynamic(() => import("@/components/MapPicker"), { ssr: false });
 
 export default function CreateRoomPage() {
   const router = useRouter();
-  const [form, setForm] = useState<any>({ title: "", description: "", price: "", location: "", latitude: null, longitude: null });
+
+  const [form, setForm] = useState<any>({
+    title: "",
+    description: "",
+    price: "",
+    location: "",
+    latitude: null,
+    longitude: null,
+    furnished: false,
+    aircon: false,
+    parking: false,
+    minStay: "",
+    maxStay: "",
+  });
+
   const [files, setFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const previewImagesRef = useRef<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSelectImage = (e: any) => {
-    const selectedFiles = Array.from(e.target.files) as File[];
+  useEffect(() => {
+    return () => {
+      previewImagesRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const previews = selectedFiles.map((file) => URL.createObjectURL(file));
+
     setFiles((prev) => [...prev, ...selectedFiles]);
-    setPreviewImages((prev) => [...prev, ...selectedFiles.map((f) => URL.createObjectURL(f))]);
+
+    setPreviewImages((prev) => {
+      const next = [...prev, ...previews];
+      previewImagesRef.current = next;
+      return next;
+    });
+
+    e.target.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
+    const removedPreview = previewImages[index];
+
+    if (removedPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(removedPreview);
+    }
+
     setFiles((prev) => prev.filter((_, i) => i !== index));
-    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+
+    setPreviewImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      previewImagesRef.current = next;
+      return next;
+    });
   };
 
-  async function handleSubmit(e: any) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    let uploadedUrls: string[] = [];
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await api.post("/upload", formData);
-      uploadedUrls.push(res.data);
-    }
-    await api.post("/room", { ...form, images: uploadedUrls, price: Number(form.price) });
-    alert("Đăng phòng thành công!");
-    router.push("/room/my");
-  }
 
-  useEffect(() => {
-    return () => { previewImages.forEach((url) => URL.revokeObjectURL(url)); };
-  }, [previewImages]);
+    if (submitting) return;
+
+    try {
+      setSubmitting(true);
+
+      const uploadedUrls: string[] = [];
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await api.post("/upload", formData);
+        uploadedUrls.push(res.data);
+      }
+
+      await api.post("/room", {
+        ...form,
+        images: uploadedUrls,
+        price: Number(form.price),
+        minStay: form.minStay !== "" ? Number(form.minStay) : null,
+        maxStay: form.maxStay !== "" ? Number(form.maxStay) : null,
+      });
+
+      alert("Đăng phòng thành công!");
+      router.push("/room/my");
+    } catch (error: any) {
+      alert(error?.response?.data?.message || "Đăng phòng thất bại. Vui lòng thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <>
@@ -56,14 +116,14 @@ export default function CreateRoomPage() {
         .section-title:first-child { margin-top: 0; }
         .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
         .form-label { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; color: #6B6560; text-transform: uppercase; }
-        .form-input { width: 100%; padding: 12px 14px; border: 1.5px solid #E8DFD0; border-radius: 8px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: #1C1A18; background: #FDFAF6; outline: none; transition: border-color 0.2s; }
+        .form-input { width: 100%; padding: 12px 14px; border: 1.5px solid #E8DFD0; border-radius: 8px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: #1C1A18; background: #FDFAF6; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
         .form-input:focus { border-color: #C4714A; background: white; }
         .form-input::placeholder { color: #B0A89E; }
         .form-textarea { resize: vertical; min-height: 110px; }
         .price-wrapper { position: relative; }
         .price-wrapper .form-input { padding-right: 40px; }
         .price-suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #6B6560; pointer-events: none; }
-        .image-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: 2px dashed #E8DFD0; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6B6560; cursor: pointer; transition: border-color 0.2s, color 0.2s; background: #FDFAF6; margin-bottom: 16px; }
+        .image-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: 2px dashed #E8DFD0; border-radius: 8px; font-size: 14px; font-weight: 500; color: #6B6560; cursor: pointer; transition: border-color 0.2s, color 0.2s; background: #FDFAF6; margin-bottom: 16px; box-sizing: border-box; }
         .image-upload-label:hover { border-color: #C4714A; color: #C4714A; }
         .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
         .image-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; }
@@ -71,11 +131,22 @@ export default function CreateRoomPage() {
         .image-remove { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: rgba(28,26,24,0.7); color: white; border: none; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .image-remove:hover { background: #C4714A; }
         .divider { height: 1px; background: #F0EBE3; margin: 28px 0; }
+        .toggles-row { display: flex; flex-direction: column; gap: 12px; }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .submit-row { display: flex; justify-content: center; gap: 12px; margin-top: 32px; }
-        .btn-save { display: inline-flex; align-items: center; gap: 8px; background: #1C1A18; color: #F5F0E8; border: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+        .btn-save { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #1C1A18; color: #F5F0E8; border: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.15s; }
         .btn-save:hover { background: #C4714A; transform: translateY(-1px); }
-        .btn-cancel { display: inline-flex; align-items: center; background: transparent; color: #6B6560; border: 1.5px solid #E8DFD0; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border-color 0.2s, color 0.2s; text-decoration: none; }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-cancel { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #6B6560; border: 1.5px solid #E8DFD0; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border-color 0.2s, color 0.2s; text-decoration: none; }
         .btn-cancel:hover { border-color: #1C1A18; color: #1C1A18; }
+        @media (max-width: 600px) {
+          .create-page { padding: 24px 12px; }
+          .create-header { padding: 24px; }
+          .create-body { padding: 24px; }
+          .form-grid-2 { grid-template-columns: 1fr; gap: 0; }
+          .submit-row { flex-wrap: wrap; }
+          .btn-save { padding: 16px 24px; }
+        }
       `}</style>
 
       <div className="create-page">
@@ -84,47 +155,158 @@ export default function CreateRoomPage() {
             <h1>Đăng phòng mới</h1>
             <p>Điền thông tin để đăng phòng cho thuê</p>
           </div>
+
           <div className="create-body">
             <form onSubmit={handleSubmit}>
               <p className="section-title">Thông tin phòng</p>
+
               <div className="form-group">
                 <label className="form-label">Tiêu đề</label>
-                <input className="form-input" placeholder="VD: Phòng trọ gần ĐH Bách Khoa, đầy đủ nội thất" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <input
+                  className="form-input"
+                  placeholder="VD: Phòng trọ gần ĐH Bách Khoa, đầy đủ nội thất"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  required
+                />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Mô tả</label>
-                <textarea className="form-input form-textarea" placeholder="Mô tả chi tiết về phòng..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <textarea
+                  className="form-input form-textarea"
+                  placeholder="Mô tả chi tiết về phòng..."
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Giá thuê (₫/tháng)</label>
                 <div className="price-wrapper">
-                  <input className="form-input" placeholder="VD: 3000000" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                  <input
+                    className="form-input"
+                    placeholder="VD: 3000000"
+                    type="number"
+                    min="0"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    required
+                  />
                   <span className="price-suffix">₫</span>
                 </div>
               </div>
+
               <div className="divider" />
+
               <p className="section-title">Hình ảnh</p>
+
               <label className="image-upload-label">
                 📷 &nbsp;Chọn ảnh phòng
-                <input type="file" multiple onChange={handleSelectImage} style={{ display: "none" }} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleSelectImage}
+                  style={{ display: "none" }}
+                />
               </label>
+
               {previewImages.length > 0 && (
                 <div className="image-grid">
                   {previewImages.map((img, index) => (
-                    <div key={index} className="image-item">
+                    <div key={img} className="image-item">
                       <img src={img} alt={`preview-${index}`} />
-                      <button type="button" className="image-remove" onClick={() => handleRemoveImage(index)}>×</button>
+                      <button
+                        type="button"
+                        className="image-remove"
+                        onClick={() => handleRemoveImage(index)}
+                        aria-label={`Xóa ảnh ${index + 1}`}
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
               )}
+
               <div className="divider" />
+
+              <p className="section-title">Tiện ích</p>
+
+              <div className="toggles-row">
+                <Toggle
+                  label="🛋  Nội thất đầy đủ"
+                  value={form.furnished}
+                  onChange={(v) => setForm({ ...form, furnished: v })}
+                />
+                <Toggle
+                  label="❄️  Điều hòa"
+                  value={form.aircon}
+                  onChange={(v) => setForm({ ...form, aircon: v })}
+                />
+                <Toggle
+                  label="🚗  Bãi đỗ xe"
+                  value={form.parking}
+                  onChange={(v) => setForm({ ...form, parking: v })}
+                />
+              </div>
+
+              <div className="divider" />
+
+              <p className="section-title">Thời gian thuê</p>
+
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label className="form-label">Thời gian thuê tối thiểu (tháng)</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={1}
+                    placeholder="VD: 1"
+                    value={form.minStay}
+                    onChange={(e) => setForm({ ...form, minStay: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Thời gian thuê tối đa (tháng)</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={1}
+                    placeholder="VD: 12"
+                    value={form.maxStay}
+                    onChange={(e) => setForm({ ...form, maxStay: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="divider" />
+
               <p className="section-title">Địa điểm</p>
-              <MapPicker location={form.location} latitude={form.latitude} longitude={form.longitude}
-                onChange={(data: any) => setForm({ ...form, location: data.location, latitude: data.latitude, longitude: data.longitude })} />
+
+              <MapPicker
+                location={form.location}
+                latitude={form.latitude}
+                longitude={form.longitude}
+                onChange={(data: any) =>
+                  setForm({
+                    ...form,
+                    location: data.location,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                  })
+                }
+              />
+
               <div className="submit-row">
-                <a href="/room/my" className="btn-cancel">Huỷ</a>
-                <button type="submit" className="btn-save">🏠 &nbsp;Đăng phòng</button>
+                <a href="/room/my" className="btn-cancel">
+                  Huỷ
+                </a>
+                <button type="submit" className="btn-save" disabled={submitting}>
+                  {submitting ? "Đang đăng..." : "🏠 Đăng phòng"}
+                </button>
               </div>
             </form>
           </div>

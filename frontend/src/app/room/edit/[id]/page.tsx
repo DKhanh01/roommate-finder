@@ -25,28 +25,46 @@ export default function EditRoomPage() {
     setPreviewImages(res.data.images || []);
   }
 
-  const handleSelectImage = (e: any) => {
-    const selectedFiles = Array.from(e.target.files) as File[];
-    setFiles((prev) => [...prev, ...selectedFiles]);
+  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
     const previews = selectedFiles.map((file) => URL.createObjectURL(file));
+
+    setFiles((prev) => [...prev, ...selectedFiles]);
     setPreviewImages((prev) => [...prev, ...previews]);
+
+    e.target.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
-    const newPreview = [...previewImages];
-    newPreview.splice(index, 1);
-    const newImages = [...(form.images || [])];
-    newImages.splice(index, 1);
-    setPreviewImages(newPreview);
-    setForm({ ...form, images: newImages });
+    const imageCount = (form.images || []).length;
+
+    if (index < imageCount) {
+      const newImages = [...(form.images || [])];
+      newImages.splice(index, 1);
+      setForm((prev: any) => ({ ...prev, images: newImages }));
+    } else {
+      const fileIndex = index - imageCount;
+
+      setFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
+
+    const removedPreview = previewImages[index];
+
+    if (removedPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(removedPreview);
+    }
+
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   async function handleSubmit(e: any) {
     e.preventDefault();
-    let uploadedUrls = form.images || [];
+    const uploadedUrls = [...(form.images || [])];
+
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
+
       const res = await api.post("/upload", formData);
       uploadedUrls.push(res.data);
     }

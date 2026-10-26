@@ -19,6 +19,8 @@ export default function RoommatesPage() {
     sleepLate: false,
   });
 
+  const [appliedFilter, setAppliedFilter] = useState<any>({});
+
   async function loadRoommates(params?: any) {
     try {
       const res = await api.get("/roommates", { params });
@@ -30,22 +32,42 @@ export default function RoommatesPage() {
     }
   }
 
-  async function handleClearFilter() {
-    const defaultFilter = { gender: "", ageRange: "", budgetRange: "", smoke: false, pet: false, sleepLate: false };
+  function handleClearFilter() {
+    const defaultFilter = {
+      gender: "",
+      ageRange: "",
+      budgetRange: "",
+      smoke: false,
+      pet: false,
+      sleepLate: false,
+    };
+
     setFilter(defaultFilter);
-    loadRoommates({ limit: 20 });
+    setAppliedFilter({});
+    setPage(1);
   }
 
   function cleanFilter(obj: any) {
     const cleaned: any = {};
+
     Object.keys(obj).forEach((key) => {
       const value = obj[key];
-      if (value !== "" && value !== false) cleaned[key] = value;
+
+      if (value !== "" && value !== false && value != null) {
+        cleaned[key] = value;
+      }
     });
+
     return cleaned;
   }
 
-  useEffect(() => { loadRoommates({ limit: 20, page }); }, [totalPages, page]);
+  useEffect(() => {
+    loadRoommates({
+      ...appliedFilter,
+      limit: 20,
+      page,
+    });
+  }, [page, appliedFilter]);
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
     .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2));
@@ -171,7 +193,10 @@ export default function RoommatesPage() {
           <RoommateFilter
             filter={filter}
             setFilter={setFilter}
-            onSearch={() => { setPage(1); loadRoommates(cleanFilter(filter)); }}
+            onSearch={() => {
+              setAppliedFilter(cleanFilter(filter));
+              setPage(1);
+            }}
             onClear={handleClearFilter}
           />
         </aside>

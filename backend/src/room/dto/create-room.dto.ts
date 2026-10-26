@@ -1,11 +1,18 @@
 export class CreateRoomDto {
-  title: string;
+  title!: string;
   description?: string;
-  price: number;
+  price!: number;
 
-  location: string;
-  latitude: number;
-  longitude: number;
+  location!: string;
+  latitude!: number | null;
+  longitude!: number | null;
 
-  images: string[];
+  images!: string[];
+
+  furnished?: boolean;
+  aircon?: boolean;
+  parking?: boolean;
+
+  minStay?: number | null;
+  maxStay?: number | null;
 }

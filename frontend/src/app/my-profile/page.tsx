@@ -269,7 +269,11 @@ export default function ProfilePage() {
               <div className="info-item">
                 <span className="info-label">Giới tính</span>
                 <span className={`info-value ${!profile.gender ? "empty" : ""}`}>
-                  {profile.gender || "Chưa cập nhật"}
+                  {profile.gender?.toLowerCase() === "male"
+                    ? "Nam"
+                    : profile.gender?.toLowerCase() === "female"
+                      ? "Nữ"
+                      : profile.gender || "Chưa cập nhật"}
                 </span>
               </div>
               <div className="info-item">

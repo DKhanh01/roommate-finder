@@ -1,19 +1,21 @@
 import Link from "next/link";
 
 export default function RoommateCard({ user }: any) {
-  const matchPercent = Number(user.matchPercent) || 0;
+  console.log("Roommate user:", user);
 
-  const matchColor =
-    user.matchLevel === "Highly compatible" ? "#388E3C" :
-    user.matchLevel === "Good match" ? "#9A7120" : "#C4714A";
+  // const matchPercent = Number(user.matchPercent) || 0;
 
-  const matchBg =
-    user.matchLevel === "Highly compatible" ? "rgba(76,175,80,0.1)" :
-    user.matchLevel === "Good match" ? "rgba(212,168,83,0.15)" : "rgba(196,113,74,0.1)";
+  // const matchColor =
+  //   user.matchLevel === "Highly compatible" ? "#388E3C" :
+  //   user.matchLevel === "Good match" ? "#9A7120" : "#C4714A";
 
-  const matchLabel =
-    user.matchLevel === "Highly compatible" ? "Rất phù hợp" :
-    user.matchLevel === "Good match" ? "Khá phù hợp" : "Ít phù hợp";
+  // const matchBg =
+  //   user.matchLevel === "Highly compatible" ? "rgba(76,175,80,0.1)" :
+  //   user.matchLevel === "Good match" ? "rgba(212,168,83,0.15)" : "rgba(196,113,74,0.1)";
+
+  // const matchLabel =
+  //   user.matchLevel === "Highly compatible" ? "Rất phù hợp" :
+  //   user.matchLevel === "Good match" ? "Khá phù hợp" : "Ít phù hợp";
 
   return (
     <>
@@ -122,7 +124,7 @@ export default function RoommateCard({ user }: any) {
 
       <Link href={`/users/${user.id}`} className="roommate-card">
         {/* Avatar */}
-        <div className="roommate-avatar">
+        <div className="roommate-avatar"> 
           {user.avatar ? (
             <img src={user.avatar} alt={user.fullname} />
           ) : (
@@ -130,7 +132,9 @@ export default function RoommateCard({ user }: any) {
               {user.fullName?.charAt(0)?.toUpperCase() || "?"}
             </span>
           )}
-          <span className="match-badge">{matchPercent}% phù hợp</span>
+
+          {/* Match Badge */}
+          {/* <span className="match-badge">{matchPercent}% phù hợp</span> */}
         </div>
 
         {/* Info */}
@@ -138,21 +142,27 @@ export default function RoommateCard({ user }: any) {
           <div className="roommate-name">{user.fullName || "Người dùng"}</div>
 
           <div className="roommate-meta">
-            {[user.age ? `${user.age} tuổi` : null, user.gender, user.location]
+            {[user.age ? `${user.age} tuổi` : null,
+              user.gender?.toLowerCase() === "male"
+                ? "Nam"
+                : user.gender?.toLowerCase() === "female"
+                  ? "Nữ"
+                  : user.gender]
               .filter(Boolean).join(" · ") || "Chưa cập nhật"}
           </div>
 
           {/* Match bar */}
-          <div className="match-bar-wrap">
+          {/* <div className="match-bar-wrap">
             <div
               className="match-bar"
               style={{ width: `${matchPercent}%`, background: matchColor }}
             />
-          </div>
+          </div> */}
 
-          <span className="match-level-tag" style={{ background: matchBg, color: matchColor }}>
+          {/* Match Level */}
+          {/* <span className="match-level-tag" style={{ background: matchBg, color: matchColor }}>
             {matchLabel}
-          </span>
+          </span> */}
         </div>
       </Link>
     </>

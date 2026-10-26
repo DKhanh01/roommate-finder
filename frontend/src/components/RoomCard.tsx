@@ -64,8 +64,8 @@ export default function RoomCard({ room }: any) {
         }
 
         .room-card-badge.renting {
-          background: rgba(212,168,83,0.92);
-          color: #1C1A18;
+          background: rgba(212,168,83,0.5);
+          color: #191d19;
         }
 
         .room-card-info { padding: 14px 16px; }
@@ -116,7 +116,7 @@ export default function RoomCard({ room }: any) {
 
             <div className="room-card-badges">
               {room.isRenting && (
-                <span className="room-card-badge renting">🔑 Đang thuê</span>
+                <span className="room-card-badge renting">🔑 Đang có người thuê</span>
               )}
             </div>
           </div>
@@ -124,10 +124,10 @@ export default function RoomCard({ room }: any) {
           {/* Info */}
           <div className="room-card-info">
             <div className="room-card-title">{room.title}</div>
-            {room.location && (
-              <div className="room-card-location">📍 {room.location}</div>
-            )}
-            <div className="room-card-price">
+            <div className="room-card-location">
+              📍 {room.location?.trim() || "Chưa cập nhật địa điểm"}
+            </div>
+                        <div className="room-card-price">
               {Number(room.price).toLocaleString("vi-VN")} ₫
               <span> /tháng</span>
             </div>

@@ -165,12 +165,31 @@ export default function MyRoomsPage() {
           justify-content: center;
           color: #B0A89E;
           font-size: 13px;
+          position: relative;
         }
 
         .room-image img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+
+        .room-renting-badge {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          z-index: 1;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          background: rgba(214, 170, 77, 0.5);
+          color: #29231A;
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 1.2;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
         }
 
         .room-body-top { padding: 20px 20px 12px; }
@@ -186,12 +205,10 @@ export default function MyRoomsPage() {
         }
 
         .room-location {
-          font-size: 13px;
-          color: #6B6560;
-          margin-bottom: 10px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          min-width: 0;
         }
 
         .room-price {
@@ -331,6 +348,12 @@ export default function MyRoomsPage() {
                   ? <img src={room.images[0]} alt={room.title} />
                   : <span>Chưa có ảnh</span>
                 }
+
+                {room.isRenting && (
+                  <span className="room-renting-badge">
+                    🔑 Đang có người thuê
+                  </span>
+                )}
               </div>
 
               <div className="room-body-top">

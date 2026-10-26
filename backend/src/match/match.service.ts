@@ -21,10 +21,12 @@ export class MatchService {
       (me.pet != null ? 5 : 0) +
       (me.sleepLate != null ? 5 : 0);
 
-    return this.prisma.$queryRaw`
+    const result = await this.prisma.$queryRaw`
       SELECT
         id,
         "fullName",
+        age,
+        gender,
         ROUND(match_percent)::INTEGER AS "matchPercent",
         CASE
           WHEN match_percent < 40 THEN 'Low compatibility'
@@ -82,5 +84,9 @@ export class MatchService {
       ORDER BY "matchPercent" DESC, distance ASC, id ASC
       LIMIT 20
     `;
+
+    console.log(result);
+
+  return result;  
   }
 }

@@ -27,9 +27,17 @@ export class RoommateService {
 
     if (gender) where.gender = gender;
 
-    if (smoke !== undefined) where.smoke = smoke;
-    if (pet !== undefined) where.pet = pet;
-    if (sleepLate !== undefined) where.sleepLate = sleepLate;
+    if (smoke === "true" || smoke === "false") {
+      where.smoke = smoke === "true";
+    }
+
+    if (pet === "true" || pet === "false") {
+      where.pet = pet === "true";
+    }
+
+    if (sleepLate === "true" || sleepLate === "false") {
+      where.sleepLate = sleepLate === "true";
+    }
 
     if (ageRange) {
       const [minAge, maxAge] = ageRange.split("-").map(Number);
@@ -41,6 +49,8 @@ export class RoommateService {
       where.budget = { gte: minBudget, lte: maxBudget };
     }
 
+console.log("Query:", query);
+console.log("Where:", where);
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
@@ -50,6 +60,7 @@ export class RoommateService {
           id: true,
           fullName: true,
           age: true,
+          gender: true,
           budget: true,
           smoke: true,
           pet: true,
@@ -69,6 +80,8 @@ export class RoommateService {
       return {
         id: user.id,
         fullName: user.fullName,
+        age: user.age,
+        gender: user.gender,
         matchPercent,
         matchLevel,
       };

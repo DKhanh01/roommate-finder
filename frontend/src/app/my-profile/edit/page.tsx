@@ -280,7 +280,7 @@ export default function EditProfilePage() {
                     className="form-input"
                     placeholder="Nhập tuổi"
                     type="number"
-                    value={form.age}
+                    value={form.age ?? ""}
                     onChange={(e) => setForm({ ...form, age: e.target.value })}
                   />
                 </div>
@@ -289,7 +289,7 @@ export default function EditProfilePage() {
                   <label className="form-label">Giới tính</label>
                   <select
                     className="form-input"
-                    value={form.gender}
+                    value={form.gender ?? ""  }
                     onChange={(e) => setForm({ ...form, gender: e.target.value })}
                   >
                     <option value="">Chọn giới tính</option>
@@ -304,7 +304,7 @@ export default function EditProfilePage() {
                   <input
                     className="form-input"
                     placeholder="Nhập số điện thoại"
-                    value={form.phone}
+                    value={form.phone ?? ""}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   />
                 </div>
@@ -319,7 +319,7 @@ export default function EditProfilePage() {
                     min={0}
                     max={20000000}
                     step={500000}
-                    value={form.budget}
+                    value={form.budget ?? 0}
                     style={{ '--val': (Number(form.budget) / 20000000) * 100 } as React.CSSProperties}
                     onChange={(e) => setForm({ ...form, budget: Number(e.target.value) })}
                   />
